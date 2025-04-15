@@ -1,0 +1,58 @@
+name: Deploy LFS File to GitHub Pages # A descriptive name for the workflow
+
+on:
+  # This section defines WHEN the workflow runs:
+  # Runs on pushes targeting the default branch (usually 'main' or 'master')
+  push:
+    branches: [ main ] # <-- IMPORTANT: Change 'main' if your default branch has a different name!
+
+  # Allows you to run this workflow manually from the Actions tab on GitHub
+  workflow_dispatch:
+
+# Sets permissions needed for the workflow to deploy to Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Prevents multiple runs from overlapping improperly
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # This job handles getting the code and preparing the site files
+  build:
+    runs-on: ubuntu-latest # Specifies the type of virtual machine to use
+    steps:
+      # Step 1.1: Get your repository code
+      - name: Checkout repository including LFS files
+        uses: actions/checkout@v4 # Uses a pre-made Action to check out code
+        with:
+          lfs: true # <-- This is KEY: Tells the checkout step to download actual LFS file content
+
+      # Step 1.2: Prepare for Pages deployment (standard step)
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # Step 1.3: Package the website files for deployment
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # IMPORTANT: This tells the action WHICH folder contains your website files
+          # If your PDF and any HTML files are just in the root, '.' is correct.
+          # If your site builds into a folder (e.g., '_site', 'build', 'public'), change '.' to that folder name.
+          path: '.'
+
+  # This job takes the packaged files and deploys them
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }} # Sets up the environment URL output
+    runs-on: ubuntu-latest
+    needs: build # IMPORTANT: Makes sure the 'build' job finishes successfully first
+    steps:
+      # Step 2.1: Deploy the packaged files to GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 # Uses a pre-made Action for deployment

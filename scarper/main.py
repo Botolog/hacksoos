@@ -66,7 +66,7 @@ def close_tab():
 from time import sleep as wait
 
 wait(5)
-books = [163, 121, 147, 517]
+books = [405]
 for book in range(len(books)):
     pages = books[book]
     delete_images_in_dir()
@@ -80,7 +80,7 @@ for book in range(len(books)):
         wait(seconds_per_frame)
     create_pdf(book)
     close_tab()
-    wait(2)
+    wait(1.7)
     if book == 0:
         quit()
         
